@@ -1,10 +1,6 @@
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('my-extension.helloWorld', () => {
-        vscode.window.showInformationMessage('Hello World from My Extension!');
-    });
-
     let onSave = vscode.workspace.onDidSaveTextDocument((document) => {
         if (document.fileName.endsWith('.properties')) {
             const edit = new vscode.WorkspaceEdit();
@@ -33,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    context.subscriptions.push(disposable, onSave, onOpen);
+    context.subscriptions.push(onSave, onOpen);
 }
 
 export function deactivate() {}
