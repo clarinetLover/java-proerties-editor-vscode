@@ -1,7 +1,7 @@
 {
-  "name": "my-extension",
-  "displayName": "My Extension",
-  "description": "A minimal VS Code extension",
+  "name": "java-properties-editor",
+  "displayName": "Java Properties Editor",
+  "description": "Edit Java Properties file with decoded charactors",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.74.0"
