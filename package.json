@@ -2,7 +2,7 @@
   "name": "my-extension",
   "displayName": "My Extension",
   "description": "A minimal VS Code extension",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.74.0"
   },
