@@ -2,6 +2,7 @@
   "name": "java-properties-editor",
   "displayName": "Java Properties Editor",
   "description": "Edit Java Properties file with decoded charactors",
+  "repository": "clarinetLover/java-properties-editor-vscode",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.74.0"
