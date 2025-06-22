@@ -1,0 +1,27 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Properties",
+    "patterns": [
+        {
+            "name": "comment.line.number-sign.properties",
+            "match": "^\\s*[#!].*$"
+        },
+        {
+            "name": "meta.property.properties",
+            "match": "^\\s*([^=:\\s]+)\\s*[=:]\\s*(.*)$",
+            "captures": {
+                "1": {
+                    "name": "variable.other.property.properties"
+                },
+                "2": {
+                    "name": "string.unquoted.properties"
+                }
+            }
+        },
+        {
+            "name": "constant.character.escape.properties",
+            "match": "\\\\."
+        }
+    ],
+    "scopeName": "source.properties"
+}
