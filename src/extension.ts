@@ -2,6 +2,17 @@ import * as vscode from 'vscode';
 
 const originalEncodedContent = new Map<string, string>();
 const fileExtension = '.properties';
+function decodeText(text: String) {
+    return text.replace(/\\u([0-9a-f]{4})/gi, (match, hex) =>
+        String.fromCharCode(parseInt(hex, 16))
+    );
+}
+function encodeText(text: String) {
+    return text.replace(/[^\x00-\x7F]/g, (char) => {
+        const code = char.charCodeAt(0).toString(16).padStart(4, '0');
+        return '\\u' + code;
+    });
+}
 
 export function activate(context: vscode.ExtensionContext) {
     let onSave = vscode.workspace.onWillSaveTextDocument((event) => {
@@ -56,17 +67,6 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(onSave, onDidSave, onOpen);
-}
-function decodeText(text: String) {
-    return text.replace(/\\u([0-9a-f]{4})/gi, (match, hex) =>
-        String.fromCharCode(parseInt(hex, 16))
-    );
-}
-function encodeText(text: String) {
-    return text.replace(/[^\x00-\x7F]/g, (char) => {
-        const code = char.charCodeAt(0).toString(16).padStart(4, '0');
-        return '\\u' + code;
-    });
 }
 export function deactivate() {
     originalEncodedContent.clear();
