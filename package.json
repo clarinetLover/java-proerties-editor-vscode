@@ -31,7 +31,28 @@
         "scopeName": "source.properties",
         "path": "./syntaxes/properties.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Properties Extension",
+      "properties": {
+        "propertiesExtension.validation.requiredKeys": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "必須とするプロパティキーの一覧"
+        },
+        "propertiesExtension.validation.keyPattern": {
+          "type": "string",
+          "default": "^[a-zA-Z0-9_.-]+$",
+          "description": "プロパティキーの正規表現パターン"
+        },
+        "propertiesExtension.validation.allowEmptyValue": {
+          "type": "boolean",
+          "default": false,
+          "description": "値が空でも許容するか"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

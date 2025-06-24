@@ -44,6 +44,63 @@ function encodeText(text: string): string {
     return encoded;
 }
 
+interface ValidationRules {
+  requiredKeys: string[];
+  keyPattern: string;
+  allowEmptyValue: boolean;
+}
+
+function validatePropertiesWithRules(text: string, rules: ValidationRules): string[] {
+  const errors: string[] = [];
+  const lines = text.split(/\r?\n/);
+  const seenKeys = new Set<string>();
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    // 空行・コメント行（#または!）はスキップ
+    if (trimmed === '' || /^[#!]/.test(trimmed)) return;
+
+    // プロパティ形式解析（key[=:]value）
+    const match = /^([^=:\s]+)\s*[=:]\s*(.*)$/.exec(trimmed);
+    if (!match) {
+      errors.push(`行 ${index + 1}: プロパティ形式が正しくありません → "${line}"`);
+      return;
+    }
+
+    const [_, key, value] = match;
+    seenKeys.add(key);
+
+    // キーのパターンチェック
+    if (rules.keyPattern && !new RegExp(rules.keyPattern).test(key)) {
+      errors.push(`行 ${index + 1}: キー "${key}" はルールに一致しません`);
+    }
+
+    // 値の存在チェック
+    if (!rules.allowEmptyValue && value.trim() === '') {
+      errors.push(`行 ${index + 1}: 値が空です`);
+    }
+  });
+
+  // 必須キーの存在チェック
+  for (const requiredKey of rules.requiredKeys) {
+    if (!seenKeys.has(requiredKey)) {
+      errors.push(`必須キー "${requiredKey}" が存在しません`);
+    }
+  }
+
+  return errors;
+}
+
+function getValidationSettings(): ValidationRules {
+  const config = vscode.workspace.getConfiguration('propertiesExtension.validation');
+  return {
+    requiredKeys: config.get<string[]>('requiredKeys', []),
+    keyPattern: config.get<string>('keyPattern', '^[a-zA-Z0-9_.-]+$'),
+    allowEmptyValue: config.get<boolean>('allowEmptyValue', false),
+  };
+}
+
 class PropertiesFileSystemProvider implements vscode.FileSystemProvider {
     private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
@@ -91,7 +148,15 @@ class PropertiesFileSystemProvider implements vscode.FileSystemProvider {
         
         const decodedContent = Buffer.from(content).toString('utf8');
         log(`Virtual file content length: ${decodedContent.length} chars`);
-        
+        const settings = getValidationSettings();
+        const validationErrors = validatePropertiesWithRules(decodedContent, settings);
+        if (validationErrors.length > 0) {
+            const message = `保存できません：${validationErrors.length} 件のバリデーションエラーがあります。\n\n` +
+                            validationErrors.join('\n');
+            log(message);
+            vscode.window.showErrorMessage(message);
+            throw new Error('Validation failed. Save aborted.');
+        }
         const encodedContent = encodeText(decodedContent);
         log(`Encoded content length: ${encodedContent.length} chars`);
         
@@ -118,6 +183,7 @@ export function activate(context: vscode.ExtensionContext) {
         log(`Opening decoded view for: ${uri.path}`);
         const decodedUri = vscode.Uri.parse(`properties-decoded:${uri.path}.decoded`);
         const doc = await vscode.workspace.openTextDocument(decodedUri);
+        await vscode.languages.setTextDocumentLanguage(doc, 'properties');
         await vscode.window.showTextDocument(doc);
         log(`Decoded view opened successfully`);
     });
