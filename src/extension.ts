@@ -224,23 +224,24 @@ export function activate(context: vscode.ExtensionContext) {
         if (document.fileName.endsWith('.properties')) {
             log(`Properties file opened: ${document.fileName}, scheme: ${document.uri.scheme}`);
             
+            if (document.uri.scheme === 'git') {
+                // Handle git diff views
+                // log(`Git properties file detected, creating decoded view`);
+                // const decodedUri = vscode.Uri.parse(`git-properties-decoded:${document.uri.path}?${document.uri.toString()}`);
+                // vscode.workspace.openTextDocument(decodedUri).then(doc => {
+                //     vscode.window.showTextDocument(doc, { preview: false, preserveFocus: true });
+                // });
+            }
             if (document.uri.scheme === 'file') {
                 vscode.commands.executeCommand('properties.openDecoded', document.uri);
                 vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-            } else if (document.uri.scheme === 'git') {
-                // Handle git diff views
-                log(`Git properties file detected, creating decoded view`);
-                const decodedUri = vscode.Uri.parse(`git-properties-decoded:${document.uri.path}?${document.uri.toString()}`);
-                vscode.workspace.openTextDocument(decodedUri).then(doc => {
-                    vscode.window.showTextDocument(doc, { preview: false, preserveFocus: true });
-                });
             }
         }
     });
 
     context.subscriptions.push(
         providerRegistration,
-        gitProviderRegistration,
+        // gitProviderRegistration,
         openDecodedCommand,
         showLogsCommand,
         onOpenProperties,
