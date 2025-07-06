@@ -101,6 +101,31 @@ function getValidationSettings(): ValidationRules {
   };
 }
 
+class GitPropertiesContentProvider implements vscode.TextDocumentContentProvider {
+    private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
+    readonly onDidChange = this._onDidChange.event;
+
+    async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
+        log(`Git content provider called for: ${uri.toString()}`);
+        
+        try {
+            // Get the original git content
+            const gitDoc = await vscode.workspace.openTextDocument(vscode.Uri.parse(uri.query));
+            const content = gitDoc.getText();
+            log(`Git content length: ${content.length} chars`);
+            
+            // Decode the content
+            const decoded = decodeText(content);
+            log(`Returning decoded git content`);
+            
+            return decoded;
+        } catch (error) {
+            log(`Error getting git content: ${error}`);
+            return '';
+        }
+    }
+}
+
 class PropertiesFileSystemProvider implements vscode.FileSystemProvider {
     private _emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
     readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = this._emitter.event;
@@ -178,6 +203,9 @@ export function activate(context: vscode.ExtensionContext) {
     
     const provider = new PropertiesFileSystemProvider();
     const providerRegistration = vscode.workspace.registerFileSystemProvider('properties-decoded', provider);
+    
+    const gitProvider = new GitPropertiesContentProvider();
+    const gitProviderRegistration = vscode.workspace.registerTextDocumentContentProvider('git-properties-decoded', gitProvider);
 
     const openDecodedCommand = vscode.commands.registerCommand('properties.openDecoded', async (uri: vscode.Uri) => {
         log(`Opening decoded view for: ${uri.path}`);
@@ -193,15 +221,26 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const onOpenProperties = vscode.workspace.onDidOpenTextDocument((document) => {
-        if (document.fileName.endsWith('.properties') && document.uri.scheme === 'file') {
-            log(`Properties file opened: ${document.fileName}`);
-            vscode.commands.executeCommand('properties.openDecoded', document.uri);
-            vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+        if (document.fileName.endsWith('.properties')) {
+            log(`Properties file opened: ${document.fileName}, scheme: ${document.uri.scheme}`);
+            
+            if (document.uri.scheme === 'file') {
+                vscode.commands.executeCommand('properties.openDecoded', document.uri);
+                vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+            } else if (document.uri.scheme === 'git') {
+                // Handle git diff views
+                log(`Git properties file detected, creating decoded view`);
+                const decodedUri = vscode.Uri.parse(`git-properties-decoded:${document.uri.path}?${document.uri.toString()}`);
+                vscode.workspace.openTextDocument(decodedUri).then(doc => {
+                    vscode.window.showTextDocument(doc, { preview: false, preserveFocus: true });
+                });
+            }
         }
     });
 
     context.subscriptions.push(
         providerRegistration,
+        gitProviderRegistration,
         openDecodedCommand,
         showLogsCommand,
         onOpenProperties,
