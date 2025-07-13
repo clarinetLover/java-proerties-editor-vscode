@@ -3,7 +3,7 @@
   "displayName": "Java Properties Editor",
   "description": "Edit Java Properties file with decoded charactors",
   "repository": "clarinetLover/java-properties-editor-vscode",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -11,7 +11,20 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "properties.openDecoded",
+          "when": "resourceExtname == .properties",
+          "group": "navigation"
+        }
+      ]
+    },
+"commands": [
+      {
+        "command": "properties.openDecoded",
+        "title": "Opne Properties files decoded"
+      },
       {
         "command": "properties.showLogs",
         "title": "Show Properties Extension Logs"
