@@ -3,7 +3,7 @@
   "displayName": "Java Properties Editor",
   "description": "Edit Java Properties file with decoded charactors",
   "repository": "clarinetLover/java-properties-editor-vscode",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -20,7 +20,7 @@
         }
       ]
     },
-"commands": [
+    "commands": [
       {
         "command": "properties.openDecoded",
         "title": "Opne Properties files decoded"
@@ -53,6 +53,11 @@
           "items": { "type": "string" },
           "default": [],
           "description": "必須とするプロパティキーの一覧"
+        },
+        "propertiesExtension.validation.doValidation": {
+          "type": "boolean",
+          "default": false,
+          "description": "バリデーションを行うか"
         },
         "propertiesExtension.validation.keyPattern": {
           "type": "string",
